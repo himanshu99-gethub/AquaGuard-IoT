@@ -1,0 +1,47 @@
+# ==================================================================================
+# AquaGuard IoT — Git Ignore Rules
+# ==================================================================================
+
+# 1. Environment files & Credentials (NEVER upload to GitHub!)
+.env
+*.env
+.env.*
+!.env.example
+
+# 2. ESP32 Arduino / PlatformIO Private Secrets
+secrets.h
+**/secrets.h
+!secrets.example.h
+!**/secrets.example.h
+
+# 3. Web Dashboard Firebase Credentials
+web-dashboard/js/firebase-config.js
+!web-dashboard/js/firebase-config.example.js
+
+# 4. Arduino IDE / PlatformIO / ESP32 Build Outputs
+build/
+*.bin
+*.elf
+*.hex
+*.o
+*.d
+.pio/
+.pioenvs/
+.piolibdeps/
+
+# 5. OS Generated Files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+
+# 6. IDE / Editor Workspace Files
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+.agents/
+
+# 7. Log files
+*.log
+npm-debug.log*

@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AquaGuard IoT — Smart Water Tank & Motor Controller</title>
+  <meta name="description" content="College IoT Project: Real-time Smart Water Tank Level Monitoring and Automatic/Manual Motor Pump Control via ESP32.">
+
+  <!-- Google Fonts: Inter & Outfit & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- Firebase Compat SDKs (Zero-build client-side) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body class="light-theme">
+
+  <!-- Header / Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>AquaGuard <span>IoT</span></h1>
+        <p class="tagline">Smart Tank Monitor & Autonomous Pump Controller</p>
+      </div>
+    </div>
+
+    <!-- Center System Status Badges -->
+    <div class="nav-center">
+      <!-- Realtime Database Status Badge -->
+      <div id="dataModeBadge" class="mode-badge live-active" title="Firebase Realtime Database Status">
+        <span class="badge-dot"></span>
+        <span id="dataModeText" class="badge-label">FIREBASE: CONNECTING...</span>
+      </div>
+
+      <!-- ESP32 Online / Offline Indicator -->
+      <div id="esp32StatusBadge" class="esp-status-badge offline" title="ESP32 Telemetry Link">
+        <span class="pulse-indicator"></span>
+        <span id="esp32StatusText">ESP32: OFFLINE</span>
+      </div>
+    </div>
+
+    <!-- Header Actions -->
+    <div class="nav-actions">
+      <!-- 5-Color Palette Swatch Quick Visual Reference -->
+      <div class="palette-indicator" title="Active Theme Palette: #2b6777, #c8d8e4, #ffffff, #f2f2f2, #52ab98">
+        <span class="palette-swatch-dot" style="background:#2b6777;"></span>
+        <span class="palette-swatch-dot" style="background:#c8d8e4;"></span>
+        <span class="palette-swatch-dot" style="background:#ffffff;"></span>
+        <span class="palette-swatch-dot" style="background:#f2f2f2;"></span>
+        <span class="palette-swatch-dot" style="background:#52ab98;"></span>
+      </div>
+
+      <div class="clock-display" id="liveClock">--:--:--</div>
+
+      <!-- Theme Switcher Button -->
+      <button id="themeToggleBtn" class="btn-icon" title="Switch Theme (Clean Mist / Deep Teal)" aria-label="Toggle Theme">
+        <svg id="themeIconSun" class="hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg id="themeIconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
+
+      <!-- Settings Button -->
+      <button id="openSettingsBtn" class="btn-icon" title="System Settings & Firebase Config" aria-label="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Safety Banner / Notification Bar -->
+  <div id="safetyBanner" class="safety-banner hidden">
+    <div class="banner-content">
+      <span class="banner-icon">⚠️</span>
+      <span id="safetyBannerText">Tank reached 100% capacity. Safety cutoff triggered. Motor locked.</span>
+    </div>
+    <button id="dismissBannerBtn" class="banner-close" aria-label="Dismiss alert">&times;</button>
+  </div>
+
+  <!-- Main Container -->
+  <main class="dashboard-grid">
+
+    <!-- TOP SECTION: Telemetry Metrics Cards -->
+    <section class="metrics-row" aria-label="Key Tank Telemetry">
+      
+      <!-- Card 1: Water Level Percentage -->
+      <div class="card metric-card">
+        <div class="metric-header">
+          <span class="metric-title">Water Level</span>
+          <span class="metric-badge" id="tankStateBadge">NORMAL</span>
+        </div>
+        <div class="metric-body">
+          <div class="metric-value-wrapper">
+            <span class="metric-value" id="valPercentage">0</span>
+            <span class="metric-unit">%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="waterLevelBar" style="width: 0%;"></div>
+          </div>
+        </div>
+        <div class="metric-footer">
+          <span>Safe Range: <strong id="valSafeRange">20% - 95%</strong></span>
+        </div>
+      </div>
+
+      <!-- Card 2: Water Height & Distance -->
+      <div class="card metric-card">
+        <div class="metric-header">
+          <span class="metric-title">Water Height</span>
+          <span class="metric-subtext">Depth</span>
+        </div>
+        <div class="metric-body">
+          <div class="metric-value-wrapper">
+            <span class="metric-value" id="valWaterCm">0.0</span>
+            <span class="metric-unit">cm</span>
+          </div>
+          <div class="metric-secondary">
+            <span>Sensor Distance: <strong id="valDistanceCm">0.0</strong> cm</span>
+          </div>
+        </div>
+        <div class="metric-footer">
+          <span>Tank Height: <strong id="valTankHeight">30.0</strong> cm</span>
+        </div>
+      </div>
+
+      <!-- Card 3: Estimated Volume -->
+      <div class="card metric-card">
+        <div class="metric-header">
+          <span class="metric-title">Water Volume</span>
+          <span class="metric-subtext">Estimated</span>
+        </div>
+        <div class="metric-body">
+          <div class="metric-value-wrapper">
+            <span class="metric-value" id="valVolumeLiters">0.0</span>
+            <span class="metric-unit">L</span>
+          </div>
+          <div class="metric-secondary">
+            <span>Available Space: <strong id="valFreeVolumeLiters">0.0</strong> L</span>
+          </div>
+        </div>
+        <div class="metric-footer">
+          <span>Tank Capacity: <strong id="valTotalCapacity">20.0</strong> L</span>
+        </div>
+      </div>
+
+      <!-- Card 4: Pump State & Runtime -->
+      <div class="card metric-card" id="pumpCard">
+        <div class="metric-header">
+          <span class="metric-title">Pump Status</span>
+          <span class="pump-indicator-pill" id="pumpPill">STOPPED</span>
+        </div>
+        <div class="metric-body">
+          <div class="pump-status-row">
+            <div class="pump-icon-circle" id="pumpIconCircle">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="M12 7v5l3 3"></path>
+              </svg>
+            </div>
+            <div class="pump-info">
+              <div class="pump-status-text" id="pumpStatusLarge">MOTOR OFF</div>
+              <div class="pump-runtime" id="pumpRuntimeText">Runtime: 00:00:00</div>
+            </div>
+          </div>
+        </div>
+        <div class="metric-footer">
+          <span>Last Activity: <strong id="valLastActivity">Just now</strong></span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- MIDDLE SECTION: Visualizer Tank + Motor Controls -->
+    <section class="main-columns">
+
+      <!-- COLUMN 1: The Interactive Animated Tank Visualizer -->
+      <div class="card visualizer-card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Tank Visualization</h2>
+            <p class="card-subtitle">Real-time graphic representation of physical water volume</p>
+          </div>
+          <div class="tank-legend">
+            <span class="legend-item"><span class="dot cutoff-dot"></span>Cutoff (100%)</span>
+            <span class="legend-item"><span class="dot low-dot"></span>Low Start (20%)</span>
+          </div>
+        </div>
+
+        <div class="tank-viewport">
+          
+          <!-- Inflow Pipe Simulation -->
+          <div class="inflow-pipe" id="inflowPipe">
+            <div class="pipe-body"></div>
+            <div class="pipe-nozzle"></div>
+            <div class="water-stream" id="waterStream"></div>
+          </div>
+
+          <!-- Ultrasonic Sensor Model at Top of Tank -->
+          <div class="sensor-mount">
+            <div class="sensor-head">
+              <span class="sensor-eye"></span>
+              <span class="sensor-eye"></span>
+            </div>
+            <div class="ultrasonic-waves" id="ultrasonicWaves">
+              <span class="wave w1"></span>
+              <span class="wave w2"></span>
+              <span class="wave w3"></span>
+            </div>
+          </div>
+
+          <!-- Tank Shell Container -->
+          <div class="tank-shell" id="tankShell">
+            
+            <!-- Threshold Markers (Overlaid) -->
+            <div class="tank-marker marker-full" id="markerCutoff" style="bottom: 100%;">
+              <span class="marker-label">CUTOFF (100%)</span>
+              <span class="marker-line"></span>
+            </div>
+            <div class="tank-marker marker-mid" style="bottom: 50%;">
+              <span class="marker-label">50%</span>
+              <span class="marker-line"></span>
+            </div>
+            <div class="tank-marker marker-low" id="markerLow" style="bottom: 20%;">
+              <span class="marker-label">LOW (20%)</span>
+              <span class="marker-line"></span>
+            </div>
+
+            <!-- Fluid Container with Dynamic Height -->
+            <div class="water-container" id="waterContainer" style="height: 0%;">
+              <!-- SVG Animated Waves -->
+              <div class="wave-wrapper">
+                <svg class="waves" xmlns="http://www.w3.org/2000/svg" viewBox="0 24 150 28" preserveAspectRatio="none">
+                  <defs>
+                    <path id="gentle-wave" d="M-160 44c30 0 58-18 88-18s 58 18 88 18 58-18 88-18 58 18 88 18 v44h-352z" />
+                  </defs>
+                  <g class="parallax">
+                    <use href="#gentle-wave" x="48" y="0" class="wave-back" />
+                    <use href="#gentle-wave" x="48" y="3" class="wave-mid" />
+                    <use href="#gentle-wave" x="48" y="5" class="wave-front" />
+                  </g>
+                </svg>
+              </div>
+              <div class="water-body">
+                <!-- Floating Bubble Particles for Realistic Depth -->
+                <div class="bubble b1"></div>
+                <div class="bubble b2"></div>
+                <div class="bubble b3"></div>
+                <div class="bubble b4"></div>
+              </div>
+            </div>
+
+            <!-- Tank Glass Sheen and Volume Gauge Marks -->
+            <div class="tank-glass-overlay">
+              <div class="glass-reflection"></div>
+              <div class="tank-rulers">
+                <span>100%</span>
+                <span>80%</span>
+                <span>60%</span>
+                <span>40%</span>
+                <span>20%</span>
+                <span>0%</span>
+              </div>
+            </div>
+
+            <!-- Center Water Level Readout -->
+            <div class="tank-center-badge">
+              <span class="tank-center-pct" id="tankCenterPct">0%</span>
+              <span class="tank-center-cm" id="tankCenterCm">0.0 cm</span>
+            </div>
+
+          </div>
+
+          <!-- Bottom Outlet / Pump Connection pipe -->
+          <div class="tank-outlet">
+            <div class="outlet-pipe"></div>
+            <span class="outlet-label">OUTLET TO PUMP</span>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- COLUMN 2: Motor Control Station & Safety Interlocks -->
+      <div class="card control-card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Motor Control Center</h2>
+            <p class="card-subtitle">Remote pump control with local edge safety override</p>
+          </div>
+          <span class="safety-shield" title="Local Safety Guard Active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            Edge Guard
+          </span>
+        </div>
+
+        <div class="control-body">
+
+          <!-- 1. Operating Mode Selector (Automatic vs Manual) -->
+          <div class="control-group">
+            <label class="control-label">Operating Mode</label>
+            <div class="mode-toggle-group" role="group" aria-label="Mode selector">
+              <button id="btnModeAuto" class="mode-toggle-btn active" data-mode="auto">
+                <span class="mode-icon">⚡</span>
+                <span class="mode-name">AUTOMATIC</span>
+                <span class="mode-desc">Starts at &lt;20%, Stops at 100%</span>
+              </button>
+              <button id="btnModeManual" class="mode-toggle-btn" data-mode="manual">
+                <span class="mode-icon">🖐️</span>
+                <span class="mode-name">MANUAL</span>
+                <span class="mode-desc">User controls ON/OFF freely</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. Manual Action Buttons (Start / Stop) -->
+          <div class="control-group">
+            <label class="control-label">Manual Remote Commands</label>
+            <div class="action-buttons-grid">
+              
+              <!-- Start Motor Button -->
+              <button id="btnStartMotor" class="btn-action btn-start" disabled>
+                <div class="btn-action-icon">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                  </svg>
+                </div>
+                <div class="btn-action-text">
+                  <span class="btn-title">START PUMP</span>
+                  <span class="btn-hint" id="startBtnHint">Only in Manual Mode</span>
+                </div>
+              </button>
+
+              <!-- Stop Motor Button -->
+              <button id="btnStopMotor" class="btn-action btn-stop" disabled>
+                <div class="btn-action-icon">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="6" y="6" width="12" height="12"></rect>
+                  </svg>
+                </div>
+                <div class="btn-action-text">
+                  <span class="btn-title">STOP PUMP</span>
+                  <span class="btn-hint" id="stopBtnHint">Stop at any level (50%, etc.)</span>
+                </div>
+              </button>
+
+            </div>
+          </div>
+
+          <!-- 3. Safety Rules Status Callout -->
+          <div class="safety-rules-box" id="safetyRulesBox">
+            <div class="rules-header">
+              <span class="rules-icon">🛡️</span>
+              <span class="rules-title">Hardware Safety Interlocks</span>
+            </div>
+            <ul class="rules-list">
+              <li id="ruleCutoff" class="rule-item passed">
+                <span class="rule-bullet">✓</span>
+                <span>Full-tank automatic cutoff (at <strong id="ruleCutoffVal">95%</strong>)</span>
+              </li>
+              <li id="ruleManualLatch" class="rule-item">
+                <span class="rule-bullet">•</span>
+                <span id="ruleManualLatchText">Manual stop latch: Pump will stay stopped after you stop it</span>
+              </li>
+              <li id="ruleSensorHealth" class="rule-item passed">
+                <span class="rule-bullet">✓</span>
+                <span>Sensor timeout watchdog: auto-kills motor on signal loss</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- 4. Live Cloud & Hardware Telemetry Link Status -->
+          <div class="cloud-link-panel" id="cloudLinkPanel">
+            <div class="cloud-link-header">
+              <span class="cloud-tag">HARDWARE TELEMETRY LINK</span>
+              <span class="cloud-desc" id="cloudLinkDesc">Awaiting ESP32 live stream</span>
+            </div>
+            <div class="cloud-link-details">
+              <div class="cloud-detail-item">
+                <span class="cloud-detail-label">Database:</span>
+                <span class="cloud-detail-val" title="https://water-tank-d2a34-default-rtdb.asia-southeast1.firebasedatabase.app">water-tank-d2a34</span>
+              </div>
+              <div class="cloud-detail-item">
+                <span class="cloud-detail-label">Path:</span>
+                <span class="cloud-detail-val">/tank &amp; /control</span>
+              </div>
+              <div class="cloud-detail-item">
+                <span class="cloud-detail-label">Last Packet:</span>
+                <span class="cloud-detail-val" id="valLastPacketTime">--</span>
+              </div>
+              <div class="cloud-detail-item">
+                <span class="cloud-detail-label">Telemetry:</span>
+                <span class="cloud-detail-val" style="color:var(--palette-seafoam); font-weight:700;">REAL HARDWARE</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+    <!-- BOTTOM SECTION: Real-time Chart & Activity Log -->
+    <section class="secondary-columns">
+
+      <!-- Chart Panel -->
+      <div class="card chart-card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">Water Level History & Pump Events</h2>
+            <p class="card-subtitle">Real-time telemetry stream showing filling cycles</p>
+          </div>
+          <div class="chart-actions">
+            <button class="time-filter-btn active" data-points="30">Recent (30s)</button>
+            <button class="time-filter-btn" data-points="60">1 Min</button>
+            <button class="time-filter-btn" data-points="120">2 Min</button>
+            <button id="btnClearChart" class="btn-icon-sm" title="Clear chart history">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="waterLevelChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Activity & Safety Log Feed -->
+      <div class="card log-card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">System & Safety Log</h2>
+            <p class="card-subtitle">Chronological record of events & triggers</p>
+          </div>
+          <button id="btnClearLogs" class="btn-sm btn-ghost">Clear</button>
+        </div>
+        <div class="log-feed" id="logFeed">
+          <!-- Dynamically populated via JS -->
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Configuration / Settings Modal -->
+  <div id="settingsModal" class="modal-backdrop hidden">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h3 class="modal-title">System Settings & Calibration</h3>
+          <p class="modal-subtitle">Configure tank dimensions, thresholds, and Firebase connection</p>
+        </div>
+        <button id="closeSettingsBtn" class="modal-close" aria-label="Close modal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        
+        <!-- Tab Navigation inside settings -->
+        <div class="settings-tabs">
+          <button class="tab-btn active" data-tab="tab-tank">Tank & Thresholds</button>
+          <button class="tab-btn" data-tab="tab-firebase">Firebase Realtime DB</button>
+          <button class="tab-btn" data-tab="tab-about">Project & Wiring</button>
+        </div>
+
+        <!-- Tab 1: Tank Dimensions & Thresholds -->
+        <div class="tab-content active" id="tab-tank">
+          <form id="tankSettingsForm">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="inputTankHeight">Tank Total Height (cm)</label>
+                <input type="number" id="inputTankHeight" min="5" max="500" step="0.5" value="15.0" required>
+                <span class="form-hint">Physical height from base to sensor face</span>
+              </div>
+              <div class="form-group">
+                <label for="inputSensorOffset">Sensor Deadzone Offset (cm)</label>
+                <input type="number" id="inputSensorOffset" min="1" max="30" step="0.5" value="2.0" required>
+                <span class="form-hint">Min distance HC-SR04 can read (usually 2-5cm)</span>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="inputLowThreshold">Low-Level Start Threshold (%)</label>
+                <input type="number" id="inputLowThreshold" min="5" max="80" step="1" value="20" required>
+                <span class="form-hint">Auto mode starts pump below this</span>
+              </div>
+              <div class="form-group">
+                <label for="inputFullThreshold">Full-Tank Cutoff Threshold (%)</label>
+                <input type="number" id="inputFullThreshold" min="60" max="100" step="1" value="100" required>
+                <span class="form-hint">Absolute hard stop to prevent overflow (100% = full usable height)</span>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="inputCapacity">Tank Capacity (Liters)</label>
+                <input type="number" id="inputCapacity" min="0.5" max="10000" step="0.5" value="1.0" required>
+                <span class="form-hint">Total volume for water calculation</span>
+              </div>
+              <div class="form-group">
+                <label for="inputHysteresis">Hysteresis Band (%)</label>
+                <input type="number" id="inputHysteresis" min="1" max="10" step="0.5" value="2.0" required>
+                <span class="form-hint">Prevents rapid relay oscillation</span>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">Save Tank Settings</button>
+              <button type="button" id="btnResetSettings" class="btn btn-secondary">Restore Defaults</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Tab 2: Firebase Connection Settings -->
+        <div class="tab-content" id="tab-firebase">
+          <form id="firebaseSettingsForm">
+            <div class="notice-box">
+              <p><strong>Connecting your ESP32:</strong> Once you enter your Firebase Realtime Database credentials below, toggle off DEMO MODE to listen to your actual hardware!</p>
+            </div>
+
+            <div class="form-group">
+              <label for="inputFbDatabaseUrl">Firebase Database URL</label>
+              <input type="url" id="inputFbDatabaseUrl" placeholder="https://your-project-default-rtdb.firebaseio.com">
+              <span class="form-hint">Found in Firebase Console &gt; Realtime Database</span>
+            </div>
+
+            <div class="form-group">
+              <label for="inputFbApiKey">Web API Key</label>
+              <input type="text" id="inputFbApiKey" placeholder="AIzaSy...">
+              <span class="form-hint">Found in Firebase Project Settings &gt; General &gt; Web API Key</span>
+            </div>
+
+            <div class="form-group">
+              <label for="inputFbProjectId">Project ID</label>
+              <input type="text" id="inputFbProjectId" placeholder="smart-water-tank-12345">
+            </div>
+
+            <div class="form-group">
+              <label class="switch-label">
+                <input type="checkbox" id="checkEnableLiveFirebase">
+                <span class="switch-slider"></span>
+                <span>Connect Live Firebase (Disable Demo Simulator)</span>
+              </label>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">Save & Connect</button>
+              <button type="button" id="btnDisconnectFirebase" class="btn btn-secondary">Use Demo Mode</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Tab 3: About & Hardware Wiring Pinout Reference -->
+        <div class="tab-content" id="tab-about">
+          <div class="pinout-guide">
+            <h4>ESP32 Hardware Pinout Quick Reference</h4>
+            <table class="pinout-table">
+              <thead>
+                <tr>
+                  <th>Component</th>
+                  <th>ESP32 Pin</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>HC-SR04 TRIG</strong></td>
+                  <td>GPIO 5</td>
+                  <td>Output trigger pulse from ESP32 (3.3V safe)</td>
+                </tr>
+                <tr>
+                  <td><strong>HC-SR04 ECHO</strong></td>
+                  <td>GPIO 18</td>
+                  <td><strong>Voltage Divider Required!</strong> 5V &rarr; 3.3V (1k&Omega; + 2k&Omega;)</td>
+                </tr>
+                <tr>
+                  <td><strong>Relay IN</strong></td>
+                  <td>GPIO 26</td>
+                  <td>Controls DC pump circuit</td>
+                </tr>
+                <tr>
+                  <td><strong>HC-SR04 VCC</strong></td>
+                  <td>VIN / 5V</td>
+                  <td>Requires 5V power supply</td>
+                </tr>
+                <tr>
+                  <td><strong>Common GND</strong></td>
+                  <td>GND</td>
+                  <td>ESP32, Relay, and Sensor must share ground</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="college-tip">
+              <strong>College Viva Tip:</strong> Always explain why the voltage divider on ECHO pin is essential: The HC-SR04 outputs a 5V logic pulse, while ESP32 GPIOs are rated for 3.3V. Feeding 5V directly can degrade or destroy the ESP32 input pin.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Audio alert chime (optional synthesized via Web Audio API) -->
+
+  <!-- JavaScript Modules -->
+  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase-service.js"></script>
+  <script src="js/tank-visualizer.js"></script>
+  <script src="js/chart-manager.js"></script>
+  <script src="js/motor-controller.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

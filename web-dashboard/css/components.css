@@ -1,0 +1,1032 @@
+/* ==========================================================================
+   AquaGuard IoT — Redesigned Component Styles
+   Focus: Animated Water Tank, Fluid Waves, Pipe Stream, Motor Controls
+   Theme: Palette (#2b6777, #c8d8e4, #ffffff, #f2f2f2, #52ab98)
+   ========================================================================== */
+
+/* ==========================================================================
+   1. Animated Water Tank Visualizer Component
+   ========================================================================== */
+
+.visualizer-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.tank-legend {
+  display: flex;
+  align-items: center;
+  gap: 1.15rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.legend-item .dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.legend-item .cutoff-dot {
+  background: var(--danger-color);
+  box-shadow: 0 0 8px var(--danger-glow);
+}
+
+.legend-item .low-dot {
+  background: var(--warning-color);
+  box-shadow: 0 0 8px rgba(217, 119, 6, 0.4);
+}
+
+.tank-viewport {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2.5rem 1rem 1rem;
+  min-height: 480px;
+  user-select: none;
+}
+
+/* --- Inflow Pipe Simulation --- */
+.inflow-pipe {
+  position: absolute;
+  top: 15px;
+  left: 20%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 20;
+}
+
+.pipe-body {
+  width: 26px;
+  height: 34px;
+  background: linear-gradient(90deg, #789fa9, var(--palette-ice-mist), #527a85);
+  border-radius: 4px 4px 0 0;
+  border: 1px solid rgba(43, 103, 119, 0.25);
+  box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.4);
+}
+
+.pipe-nozzle {
+  width: 34px;
+  height: 11px;
+  background: linear-gradient(90deg, #376470, var(--palette-teal-dark), #234852);
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.water-stream {
+  width: 10px;
+  height: 0px;
+  background: linear-gradient(180deg, var(--palette-seafoam), var(--palette-teal-dark));
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 300ms ease;
+  box-shadow: 0 0 14px var(--seafoam-glow);
+}
+
+/* Active flowing water stream when motor is ON */
+.inflow-pipe.flowing .water-stream {
+  height: 140px;
+  opacity: 1;
+  animation: stream-flow 0.4s linear infinite;
+}
+
+@keyframes stream-flow {
+  0% { transform: scaleX(0.85); opacity: 0.85; }
+  50% { transform: scaleX(1.15); opacity: 1; }
+  100% { transform: scaleX(0.85); opacity: 0.85; }
+}
+
+/* --- Ultrasonic Sensor Model at Top of Tank --- */
+.sensor-mount {
+  position: absolute;
+  top: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 25;
+}
+
+.sensor-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-card);
+  padding: 6px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-medium);
+  box-shadow: 0 4px 14px rgba(43, 103, 119, 0.12);
+}
+
+.sensor-eye {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--palette-ice-mist) 35%, var(--palette-teal-dark) 80%);
+  border: 1.5px solid var(--palette-teal-dark);
+  position: relative;
+}
+
+.sensor-eye::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 7px;
+  height: 7px;
+  background: var(--palette-seafoam);
+  border-radius: 50%;
+  box-shadow: 0 0 6px var(--seafoam-glow);
+}
+
+.ultrasonic-waves {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.ultrasonic-waves .wave {
+  height: 2px;
+  border-radius: 9999px;
+  background: var(--palette-seafoam);
+  opacity: 0;
+}
+
+.ultrasonic-waves .w1 { width: 18px; animation: sonar 1.5s infinite 0.1s; }
+.ultrasonic-waves .w2 { width: 32px; animation: sonar 1.5s infinite 0.4s; }
+.ultrasonic-waves .w3 { width: 48px; animation: sonar 1.5s infinite 0.7s; }
+
+@keyframes sonar {
+  0% { opacity: 0; transform: translateY(-3px); }
+  40% { opacity: 0.85; }
+  100% { opacity: 0; transform: translateY(18px); }
+}
+
+/* --- Tank Shell Container --- */
+.tank-shell {
+  position: relative;
+  width: 290px;
+  height: 385px;
+  background: rgba(200, 216, 228, 0.15);
+  border: 3px solid rgba(43, 103, 119, 0.35);
+  border-top: none; /* Open top for ultrasonic sensor */
+  border-radius: 0 0 26px 26px;
+  overflow: hidden;
+  box-shadow: 
+    0 16px 36px rgba(43, 103, 119, 0.12),
+    inset 0 0 24px rgba(82, 171, 152, 0.08);
+  margin-top: 45px;
+  backdrop-filter: blur(8px);
+}
+
+body.dark-theme .tank-shell {
+  background: rgba(15, 36, 43, 0.7);
+  border-color: rgba(200, 216, 228, 0.3);
+  box-shadow: 
+    0 16px 36px rgba(0, 0, 0, 0.45),
+    inset 0 0 24px rgba(82, 171, 152, 0.15);
+}
+
+/* Metallic Rim on Top of Tank */
+.tank-shell::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -3px;
+  right: -3px;
+  height: 7px;
+  background: linear-gradient(90deg, var(--palette-teal-dark), var(--palette-ice-mist), var(--palette-teal-dark));
+  border-radius: 4px;
+  z-index: 30;
+}
+
+/* --- Water Container & Fluid Animation --- */
+.water-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 0%; /* Dynamic inline style */
+  max-height: 100%;
+  transition: height 700ms cubic-bezier(0.2, 0.8, 0.25, 1);
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+}
+
+.wave-wrapper {
+  width: 100%;
+  height: 26px;
+  margin-bottom: -1px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.waves {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.parallax > use {
+  animation: move-forever 12s cubic-bezier(0.55, 0.5, 0.45, 0.5) infinite;
+}
+
+/* Wave layers using the 5-color palette harmony */
+.parallax > use:nth-child(1) {
+  animation-delay: -2s;
+  animation-duration: 7s;
+  fill: rgba(200, 216, 228, 0.55); /* #c8d8e4 */
+}
+.parallax > use:nth-child(2) {
+  animation-delay: -3s;
+  animation-duration: 10s;
+  fill: rgba(82, 171, 152, 0.75); /* #52ab98 */
+}
+.parallax > use:nth-child(3) {
+  animation-delay: -4s;
+  animation-duration: 13s;
+  fill: rgba(43, 103, 119, 0.92); /* #2b6777 */
+}
+
+@keyframes move-forever {
+  0% { transform: translate3d(-90px, 0, 0); }
+  100% { transform: translate3d(85px, 0, 0); }
+}
+
+.water-body {
+  flex: 1;
+  background: linear-gradient(180deg, rgba(82, 171, 152, 0.9) 0%, rgba(55, 137, 148, 0.94) 35%, rgba(43, 103, 119, 0.98) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Dynamic State Themes on Water */
+.water-container.state-low .water-body {
+  background: linear-gradient(180deg, rgba(217, 119, 6, 0.88) 0%, rgba(180, 83, 9, 0.95) 100%);
+}
+.water-container.state-low .parallax > use:nth-child(1) { fill: rgba(245, 158, 11, 0.45); }
+.water-container.state-low .parallax > use:nth-child(2) { fill: rgba(217, 119, 6, 0.65); }
+.water-container.state-low .parallax > use:nth-child(3) { fill: rgba(180, 83, 9, 0.9); }
+
+.water-container.state-full .water-body {
+  background: linear-gradient(180deg, rgba(82, 171, 152, 0.95) 0%, rgba(43, 103, 119, 0.98) 100%);
+}
+.water-container.state-full .parallax > use:nth-child(1) { fill: rgba(200, 216, 228, 0.65); }
+.water-container.state-full .parallax > use:nth-child(2) { fill: rgba(82, 171, 152, 0.85); }
+.water-container.state-full .parallax > use:nth-child(3) { fill: rgba(43, 103, 119, 0.95); }
+
+/* --- Rising Air Bubbles --- */
+.bubble {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.45);
+  border-radius: 50%;
+  bottom: -20px;
+  animation: float-bubble 4s infinite ease-in;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.6);
+}
+
+.bubble.b1 { width: 8px; height: 8px; left: 20%; animation-duration: 3.5s; animation-delay: 0.5s; }
+.bubble.b2 { width: 12px; height: 12px; left: 45%; animation-duration: 4.8s; animation-delay: 1.5s; }
+.bubble.b3 { width: 6px; height: 6px; left: 70%; animation-duration: 3s; animation-delay: 2s; }
+.bubble.b4 { width: 10px; height: 10px; left: 85%; animation-duration: 4.2s; animation-delay: 0.8s; }
+
+@keyframes float-bubble {
+  0% { transform: translateY(0) scale(0.8); opacity: 0; }
+  30% { opacity: 0.85; }
+  100% { transform: translateY(-360px) scale(1.3); opacity: 0; }
+}
+
+/* --- Glass Sheen & Measurement Rulers --- */
+.tank-glass-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 15;
+}
+
+.glass-reflection {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 48%;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.22) 0%, transparent 100%);
+  transform: skewX(-12deg) translateX(-20px);
+}
+
+body.dark-theme .glass-reflection {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+}
+
+.tank-rulers {
+  position: absolute;
+  right: 12px;
+  top: 15px;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  opacity: 0.85;
+}
+
+body.dark-theme .tank-rulers {
+  color: var(--palette-ice-mist);
+  opacity: 0.75;
+}
+
+.tank-rulers span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tank-rulers span::after {
+  content: '';
+  width: 9px;
+  height: 1.5px;
+  background: currentColor;
+}
+
+/* --- Threshold Markers --- */
+.tank-marker {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 18;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  transform: translateY(50%);
+}
+
+.marker-label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.18rem 0.45rem;
+  border-radius: 5px;
+  margin-left: 8px;
+  letter-spacing: 0.04em;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.marker-line {
+  flex: 1;
+  height: 1px;
+  border-top: 1.5px dashed;
+  margin-left: 6px;
+  margin-right: 42px;
+}
+
+.marker-full .marker-label {
+  background: rgba(225, 29, 72, 0.95);
+  color: #ffffff;
+}
+.marker-full .marker-line {
+  border-color: rgba(225, 29, 72, 0.85);
+}
+
+.marker-low .marker-label {
+  background: rgba(217, 119, 6, 0.95);
+  color: #ffffff;
+}
+.marker-low .marker-line {
+  border-color: rgba(217, 119, 6, 0.85);
+}
+
+.marker-mid .marker-label {
+  background: rgba(43, 103, 119, 0.85);
+  color: #ffffff;
+}
+.marker-mid .marker-line {
+  border-color: rgba(43, 103, 119, 0.5);
+}
+
+body.dark-theme .marker-mid .marker-label {
+  background: rgba(200, 216, 228, 0.35);
+  color: #ffffff;
+}
+
+/* --- Center Water Level Badge --- */
+.tank-center-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: var(--glass-blur);
+  border: 1.5px solid var(--border-medium);
+  padding: 0.65rem 1.25rem;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 19;
+  box-shadow: 0 8px 24px rgba(43, 103, 119, 0.18);
+  pointer-events: none;
+}
+
+body.dark-theme .tank-center-badge {
+  background: rgba(21, 50, 58, 0.88);
+  border-color: rgba(200, 216, 228, 0.35);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.tank-center-pct {
+  font-family: var(--font-display);
+  font-size: 1.95rem;
+  font-weight: 850;
+  color: var(--text-heading);
+  line-height: 1;
+}
+
+body.dark-theme .tank-center-pct {
+  color: #ffffff;
+}
+
+.tank-center-cm {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-accent);
+  margin-top: 0.25rem;
+}
+
+/* --- Outlet to Pump Pipe --- */
+.tank-outlet {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: -1px;
+}
+
+.outlet-pipe {
+  width: 30px;
+  height: 24px;
+  background: linear-gradient(90deg, #789fa9, var(--palette-ice-mist), #527a85);
+  border: 1px solid rgba(43, 103, 119, 0.3);
+  border-radius: 0 0 6px 6px;
+}
+
+.outlet-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+}
+
+/* ==========================================================================
+   2. Motor Control Center Component
+   ========================================================================== */
+
+.control-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.safety-shield {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: var(--success-bg);
+  border: 1px solid rgba(82, 171, 152, 0.4);
+  color: var(--palette-seafoam);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+}
+
+.safety-shield svg {
+  width: 15px;
+  height: 15px;
+}
+
+.control-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.control-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+/* Segmented Operating Mode Switch */
+.mode-toggle-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+
+.mode-toggle-btn {
+  background: var(--bg-well);
+  border: 1.5px solid var(--border-medium);
+  border-radius: 16px;
+  padding: 0.95rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  text-align: left;
+}
+
+.mode-toggle-btn:hover {
+  background: rgba(200, 216, 228, 0.35);
+  border-color: var(--palette-teal-dark);
+}
+
+.mode-toggle-btn.active {
+  background: var(--palette-teal-dark);
+  border-color: var(--palette-teal-dark);
+  box-shadow: 0 8px 24px var(--teal-glow);
+}
+
+.mode-toggle-btn.active .mode-name {
+  color: #ffffff;
+}
+
+.mode-toggle-btn.active .mode-desc {
+  color: var(--palette-ice-mist);
+}
+
+.mode-toggle-btn.active[data-mode="manual"] {
+  background: var(--palette-seafoam);
+  border-color: var(--palette-seafoam);
+  box-shadow: 0 8px 24px var(--seafoam-glow);
+}
+
+.mode-toggle-btn.active[data-mode="manual"] .mode-name {
+  color: #ffffff;
+}
+
+.mode-toggle-btn.active[data-mode="manual"] .mode-desc {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.mode-icon {
+  font-size: 1.35rem;
+}
+
+.mode-name {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  letter-spacing: 0.02em;
+}
+
+.mode-desc {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+/* Action Buttons (START / STOP) */
+.action-buttons-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.15rem;
+}
+
+.btn-action {
+  border-radius: 18px;
+  padding: 1.15rem 1.35rem;
+  display: flex;
+  align-items: center;
+  gap: 1.15rem;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-bounce);
+  position: relative;
+  overflow: hidden;
+  text-align: left;
+}
+
+.btn-action-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.btn-action-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.btn-action-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.btn-title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.btn-hint {
+  font-size: 0.74rem;
+  opacity: 0.9;
+}
+
+/* Start Button styling */
+.btn-start {
+  background: linear-gradient(135deg, var(--palette-seafoam), #388e7e);
+  color: #ffffff;
+  box-shadow: 0 8px 22px var(--seafoam-glow);
+}
+
+.btn-start:hover:not(:disabled) {
+  box-shadow: 0 12px 28px rgba(82, 171, 152, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn-start:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* Stop Button styling */
+.btn-stop {
+  background: linear-gradient(135deg, #e11d48, #be123c);
+  color: #ffffff;
+  box-shadow: 0 8px 22px rgba(225, 29, 72, 0.3);
+}
+
+.btn-stop:hover:not(:disabled) {
+  box-shadow: 0 12px 28px rgba(225, 29, 72, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn-stop:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* Disabled State */
+.btn-action:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.65);
+  box-shadow: none;
+  transform: none !important;
+}
+
+/* Safety Rules Callout Box */
+.safety-rules-box {
+  background: var(--bg-well);
+  border: 1.5px solid var(--border-medium);
+  border-radius: 16px;
+  padding: 1.1rem 1.25rem;
+}
+
+.rules-header {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.75rem;
+}
+
+.rules-icon {
+  font-size: 1.1rem;
+}
+
+.rules-title {
+  font-size: 0.84rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-heading);
+}
+
+.rules-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.rule-item {
+  font-size: 0.8rem;
+  color: var(--text-body);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.rule-bullet {
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.rule-item.passed {
+  color: var(--text-heading);
+  font-weight: 700;
+}
+
+.rule-item.passed .rule-bullet {
+  color: var(--palette-seafoam);
+}
+
+.rule-item.active-warning {
+  color: var(--danger-color);
+  font-weight: 700;
+}
+
+.rule-item.active-warning .rule-bullet {
+  color: var(--danger-color);
+}
+
+/* Live Cloud Telemetry Link Panel */
+.cloud-link-panel {
+  background: var(--bg-well);
+  border: 1.5px solid var(--border-medium);
+  border-radius: 16px;
+  padding: 1rem 1.25rem;
+}
+
+.cloud-link-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+}
+
+.cloud-tag {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: var(--text-accent);
+  letter-spacing: 0.04em;
+}
+
+.cloud-desc {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.cloud-link-details {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.55rem 0.85rem;
+}
+
+.cloud-detail-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.76rem;
+  padding: 0.4rem 0.65rem;
+  background: var(--bg-card);
+  border-radius: 9px;
+  border: 1px solid var(--border-medium);
+}
+
+.cloud-detail-label {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.cloud-detail-val {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+/* ==========================================================================
+   Responsive Components (Mobile & Tablet)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  /* Chart Card Mobile Optimization */
+  .chart-card .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .chart-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    width: 100%;
+  }
+  .chart-controls .btn-timeframe {
+    flex: 1;
+    min-width: 44px;
+    text-align: center;
+    padding: 0.35rem 0.5rem;
+    font-size: 0.75rem;
+  }
+  .chart-container {
+    height: 220px;
+  }
+
+  /* Cloud Details Grid */
+  .cloud-details-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.55rem;
+  }
+
+  /* Tank Shell Tablet Sizing */
+  .tank-shell {
+    width: 260px;
+    height: 350px;
+  }
+}
+
+@media (max-width: 580px) {
+  /* Tank Visualizer Mobile Stage */
+  .tank-viewport {
+    min-height: 400px;
+    padding: 1.5rem 0.5rem 0.75rem;
+  }
+
+  .tank-shell {
+    width: min(245px, 72vw);
+    height: 320px;
+    margin-top: 36px;
+    border-radius: 0 0 20px 20px;
+  }
+
+  .tank-legend {
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    font-size: 0.72rem;
+  }
+
+  .sensor-head {
+    padding: 4px 10px;
+    gap: 8px;
+  }
+  .sensor-eye {
+    width: 14px;
+    height: 14px;
+  }
+
+  .tank-rulers {
+    right: 8px;
+    font-size: 0.62rem;
+  }
+  .tank-rulers span {
+    gap: 4px;
+  }
+  .tank-rulers span::after {
+    width: 6px;
+  }
+
+  .marker-line {
+    margin-right: 28px;
+  }
+  .marker-label {
+    font-size: 0.62rem;
+    padding: 0.12rem 0.35rem;
+    margin-left: 5px;
+  }
+
+  .tank-center-badge {
+    padding: 0.5rem 0.85rem;
+    border-radius: 12px;
+  }
+  .tank-center-pct {
+    font-size: 1.65rem;
+  }
+  .tank-center-cm {
+    font-size: 0.72rem;
+  }
+
+  /* Compact 2-Column Mode Toggles */
+  .mode-toggle-group {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.55rem;
+  }
+  .mode-toggle-btn {
+    padding: 0.75rem 0.65rem;
+    border-radius: 12px;
+    gap: 0.2rem;
+  }
+  .mode-icon {
+    font-size: 1.15rem;
+  }
+  .mode-name {
+    font-size: 0.88rem;
+  }
+  .mode-desc {
+    font-size: 0.66rem;
+    line-height: 1.2;
+  }
+
+  /* Compact 2-Column Action Buttons (START / STOP) */
+  .action-buttons-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.55rem;
+  }
+  .btn-action {
+    padding: 0.75rem 0.65rem;
+    gap: 0.55rem;
+    border-radius: 14px;
+    min-height: 60px;
+  }
+  .btn-action-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+  }
+  .btn-action-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+  .btn-title {
+    font-size: 0.95rem;
+  }
+  .btn-hint {
+    font-size: 0.65rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 85px;
+  }
+
+  /* Safety Rules Box */
+  .safety-rules-box {
+    padding: 0.75rem 0.85rem;
+    border-radius: 12px;
+  }
+  .rules-header {
+    font-size: 0.74rem;
+  }
+  .rule-item {
+    font-size: 0.72rem;
+    gap: 0.45rem;
+  }
+
+  /* Activity Log Feed */
+  .log-feed {
+    max-height: 180px;
+    padding: 0.5rem;
+    gap: 0.45rem;
+  }
+  .log-entry {
+    padding: 0.45rem 0.65rem;
+    font-size: 0.75rem;
+    border-radius: 8px;
+  }
+
+  /* Cloud Details on Ultra Small */
+  .cloud-details-grid {
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+  }
+}
+
+@media (max-width: 380px) {
+  /* Extra Small Devices (iPhone SE, Small Androids) */
+  .tank-shell {
+    width: 215px;
+    height: 285px;
+  }
+  .btn-action {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+    padding: 0.65rem 0.55rem;
+  }
+  .btn-hint {
+    max-width: 100%;
+  }
+}
