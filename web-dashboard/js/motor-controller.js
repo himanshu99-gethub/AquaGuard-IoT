@@ -132,7 +132,7 @@ class MotorController {
         this.startBtnHint.textContent = 'Motor is already running';
       } else if (this.currentLevelPct >= fullCutoff) {
         this.btnStartMotor.disabled = true;
-        this.startBtnHint.textContent = `Blocked: Tank >= ${fullCutoff}%`;
+        this.startBtnHint.textContent = fullCutoff >= 100 ? 'Blocked: Tank is 100% Full' : `Blocked: Tank >= ${fullCutoff}%`;
       } else {
         this.btnStartMotor.disabled = false;
         this.startBtnHint.textContent = this.currentMode === 'auto' ? 'Manual start override' : 'Press to run pump';

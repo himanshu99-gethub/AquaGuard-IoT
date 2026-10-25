@@ -35,7 +35,7 @@ class TankVisualizer {
       this.waterContainer.classList.remove('state-low', 'state-full');
       if (levelPct <= (config?.lowThreshold || 20)) {
         this.waterContainer.classList.add('state-low');
-      } else if (levelPct >= (config?.fullThreshold || 95)) {
+      } else if (levelPct >= (config?.fullThreshold || 100)) {
         this.waterContainer.classList.add('state-full');
       }
     }

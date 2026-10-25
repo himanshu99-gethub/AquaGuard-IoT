@@ -66,11 +66,7 @@ class AppController {
   }
 
   loadConfig() {
-    const saved = localStorage.getItem('aquaguard_tank_config');
-    if (saved) {
-      try { return JSON.parse(saved); } catch (e) { /* ignore */ }
-    }
-    return {
+    const defaults = {
       tankHeight: 15.0,
       sensorOffset: 2.0,
       lowThreshold: 20,
@@ -78,6 +74,21 @@ class AppController {
       capacityLiters: 1.0,
       hysteresis: 2.0
     };
+
+    const saved = localStorage.getItem('aquaguard_tank_config');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        // Automatically migrate any legacy cutoff (< 100%, like 93% or 95%) to 100%
+        if (!parsed.fullThreshold || parsed.fullThreshold <= 95) {
+          parsed.fullThreshold = 100;
+        }
+        const merged = { ...defaults, ...parsed };
+        localStorage.setItem('aquaguard_tank_config', JSON.stringify(merged));
+        return merged;
+      } catch (e) { /* ignore */ }
+    }
+    return defaults;
   }
 
   async saveConfig(newConfig) {
@@ -365,12 +376,12 @@ class AppController {
       e.preventDefault();
       try {
         const newConfig = {
-          tankHeight: parseFloat(this.inputTankHeight.value) || 30.0,
-          sensorOffset: parseFloat(this.inputSensorOffset.value) || 4.0,
+          tankHeight: parseFloat(this.inputTankHeight.value) || 15.0,
+          sensorOffset: parseFloat(this.inputSensorOffset.value) || 2.0,
           lowThreshold: parseFloat(this.inputLowThreshold.value) || 20,
-          fullThreshold: parseFloat(this.inputFullThreshold.value) || 95,
-          capacityLiters: parseFloat(this.inputCapacity.value) || 20.0,
-          hysteresis: parseFloat(this.inputHysteresis.value) || 3.0
+          fullThreshold: parseFloat(this.inputFullThreshold.value) || 100,
+          capacityLiters: parseFloat(this.inputCapacity.value) || 1.0,
+          hysteresis: parseFloat(this.inputHysteresis.value) || 2.0
         };
 
         await this.saveConfig(newConfig);

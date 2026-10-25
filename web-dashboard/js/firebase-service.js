@@ -304,12 +304,12 @@ class FirebaseService {
       if (!this.isConnected) return;
 
       const timeSinceLastPacket = Date.now() - this.lastPacketTime;
-      // ESP32 is considered online if a packet was received within 12 seconds
+      // ESP32 is considered online if a packet was received within 18 seconds
       // AND latest data explicitly reports esp32_online !== false
       let isOnline = false;
       if (this.latestTankData) {
         const flagOnline = Boolean(this.latestTankData.esp32_online);
-        const fresh = this.lastPacketTime > 0 && timeSinceLastPacket < 12000;
+        const fresh = this.lastPacketTime > 0 && timeSinceLastPacket < 18000;
         isOnline = flagOnline && fresh;
       }
 
