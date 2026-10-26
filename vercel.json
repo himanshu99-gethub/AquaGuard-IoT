@@ -4,6 +4,14 @@
   "trailingSlash": false,
   "rewrites": [
     {
+      "source": "/web-dashboard",
+      "destination": "/web-dashboard/index.html"
+    },
+    {
+      "source": "/web-dashboard/(.*)",
+      "destination": "/web-dashboard/$1"
+    },
+    {
       "source": "/",
       "destination": "/web-dashboard/index.html"
     },
