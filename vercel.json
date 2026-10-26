@@ -1,23 +1,11 @@
 {
-  "version": 2,
   "cleanUrls": true,
-  "trailingSlash": false,
-  "rewrites": [
-    {
-      "source": "/web-dashboard",
-      "destination": "/web-dashboard/index.html"
-    },
-    {
-      "source": "/web-dashboard/(.*)",
-      "destination": "/web-dashboard/$1"
-    },
+  "redirects": [
     {
       "source": "/",
-      "destination": "/web-dashboard/index.html"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/web-dashboard/$1"
+      "destination": "/web-dashboard/",
+      "permanent": false
     }
   ]
 }
+
